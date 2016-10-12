@@ -8,7 +8,7 @@ const port = process.env.PORT || 3000;
 const appUrl = process.env.APP_URL || `http://localhost:${port}`;
 const ssoUrl = process.env.SSO_URL;
 const jwtSecret = process.env.JWT_SECRET || "secret";
-const db = { users: [], tokens: [] };
+const tokens = [];
 const app = express();
 
 app.set("views", __dirname);
@@ -16,7 +16,7 @@ app.set("views", __dirname);
 app.set("view engine", "ejs");
 
 app.use(cookieSession({
-  secret: "example",
+  secret: "secret",
   secureProxy: appUrl.startsWith("https://"),
   maxAge: 3600000
 }));
@@ -34,19 +34,14 @@ app.post("/auth", bodyParser.urlencoded({ extended: true }), (req, res) => {
     assertion: req.body.assertion,
     appUrl,
     jwtSecret,
-    findToken: token => db.tokens.includes(token),
-    storeToken: token => db.tokens.push(token)
+    findToken: token => tokens.includes(token),
+    storeToken: token => tokens.push(token)
   }).then(attrs => {
-    let user = db.users.find(user => user.email === attrs.mail);
-
-    if (!user) {
-      db.users.push(user = {
-        id: attrs.edupersontargetedid,
-        email: attrs.mail,
-        name: attrs.displayname,
-        registeredAt: new Date()
-      });
-    }
+    let user = {
+      id: attrs.edupersontargetedid,
+      email: attrs.mail,
+      name: attrs.displayname
+    };
 
     Object.assign(req.session, { user });
     res.redirect(appUrl);
@@ -54,7 +49,6 @@ app.post("/auth", bodyParser.urlencoded({ extended: true }), (req, res) => {
     res.status(500).send(error.message);
   });
 });
-
 
 app.delete("/auth", (req, res) => {
   req.session = null;
