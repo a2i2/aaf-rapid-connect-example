@@ -6,7 +6,7 @@ import validateJWT from "aaf-rapid-connect-jwt-validator";
 
 const port = process.env.PORT || 3000;
 const appUrl = process.env.APP_URL || `http://localhost:${port}`;
-const ssoUrl = process.env.SSO_URL;
+const ssoUrl = process.env.SSO_URL; // e.g. https://rapid.aaf.edu.au/jwt/authnrequest/research/XXXXXXXX
 const jwtSecret = process.env.JWT_SECRET || "secret";
 const tokens = [];
 const app = express();
