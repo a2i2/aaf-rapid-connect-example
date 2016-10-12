@@ -62,7 +62,11 @@ app.delete("/auth", (req, res) => {
 });
 
 if (!ssoUrl) {
-  app.use("/mock_sso", mockRapidConnect({ appUrl, jwtSecret }));
+  app.use("/mock_sso", mockRapidConnect({
+    appUrl,
+    jwtSecret,
+    pageTitle: "Deakin University"
+  }));
 }
 
 app.listen(port, () => console.log(`Web server started on port ${port}.`));
