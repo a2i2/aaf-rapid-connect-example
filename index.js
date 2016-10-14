@@ -2,7 +2,7 @@ import express from "express";
 import bodyParser from "body-parser";
 import cookieSession from "cookie-session";
 import mockRapidConnect from "aaf-rapid-connect-mock";
-import validateJWT from "aaf-rapid-connect-jwt-validator";
+import validateJWT, { ValidationError } from "aaf-rapid-connect-jwt-validator";
 
 const port = process.env.PORT || 3000;
 const appUrl = process.env.APP_URL || `http://localhost:${port}`;
@@ -32,8 +32,8 @@ app.get("/auth", (req, res) => {
 app.post("/auth", bodyParser.urlencoded({ extended: true }), (req, res) => {
   validateJWT({
     assertion: req.body.assertion,
-    appUrl,
     jwtSecret,
+    appUrl,
     findToken: token => tokens.includes(token),
     storeToken: token => tokens.push(token)
   }).then(attrs => {
@@ -46,7 +46,11 @@ app.post("/auth", bodyParser.urlencoded({ extended: true }), (req, res) => {
     Object.assign(req.session, { user });
     res.redirect(appUrl);
   }).catch(error => {
-    res.status(500).send(error.message);
+    if (error instanceof ValidationError) {
+      res.status(500).send(error.message);
+    } else {
+      res.sendStatus(500);
+    }
   });
 });
 
@@ -57,8 +61,8 @@ app.delete("/auth", (req, res) => {
 
 if (!ssoUrl) {
   app.use("/mock_sso", mockRapidConnect({
-    appUrl,
     jwtSecret,
+    appUrl,
     pageTitle: "Deakin University"
   }));
 }
